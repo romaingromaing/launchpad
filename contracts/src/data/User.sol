@@ -2,6 +2,7 @@
 pragma solidity 0.8.12;
 
 import "../module/WhiteList.sol";
+import "../module/Log.sol";
 
 contract User is WhiteList {
     struct UserStruct {
@@ -14,16 +15,21 @@ contract User is WhiteList {
         uint hasReward; // 已奖励池
     }
 
+    // 用户类型
+    mapping (address => uint) userType;
+
     // 用户投资情况
-    mapping(address => mapping(address => UserStruct)) public userInvitests; /* 用户地址 => 项目地址 => 用户投资情况 */
+    mapping(address => mapping(address => UserStruct))
+        public userInvitests; /* 用户地址 => 项目地址 => 用户投资情况 */
 
     function initWhiteInvest(
         address project,
         address _invest,
         uint investTotal,
         bytes32[] memory _proof
-    ) public {
-        require(_invest == invest[project],"token not matching");
+    ) external _logs_ {
+         require(userType[msg.sender] == 0 || userType[msg.sender] == 1,"nonwhitelist investors"); // 0 default; 1 whitelist accounts
+        require(_invest == invest[project], "token not matching");
         uint nowTime = block.timestamp;
         UserStruct memory userInfo = userInvitests[msg.sender][project];
 
@@ -63,19 +69,24 @@ contract User is WhiteList {
             userInvitests[msg.sender][project].investTotal = userInvestTotal; // 用户投资总额
             userInvitests[msg.sender][project].reward =
                 (ratio[project] * userInvestTotal) /
-                10**18; // 用户的总收益
+                10 ** 18; // 用户的总收益
             investToOwner[project] += investTotal; // 项目方可收到的货款
-            projectPoolTotal[project] -= (investTotal * ratio[project]) / 10**18; // 预支池子里的项目方代币
+            projectPoolTotal[project] -=
+                (investTotal * ratio[project]) /
+                10 ** 18; // 预支池子里的项目方代币
             whiteHasInvest[project] += investTotal; // 更新白名单预留池
         }
+
+        userType[msg.sender] = 1;
     }
 
     function initUserInvest(
         address project,
         address _invest,
         uint investTotal
-    ) public {
-        require(_invest == invest[project],"token not matching");
+    ) external _logs_ {
+        require(userType[msg.sender] == 0 || userType[msg.sender] == 2,"nonordinary investors"); // 0 default; 2 ordinary accounts
+        require(_invest == invest[project], "token not matching");
         uint nowTime = block.timestamp;
         UserStruct memory userInfo = userInvitests[msg.sender][project];
         // 限制池子必须有足够项目方代币
@@ -88,7 +99,7 @@ contract User is WhiteList {
             require(
                 projectPoolTotal[project] -
                     (investTotal * ratio[project]) /
-                    10**18 >=
+                    10 ** 18 >=
                     0,
                 "not enough project token"
             );
@@ -121,11 +132,15 @@ contract User is WhiteList {
             userInvitests[msg.sender][project].investTotal = userInvestTotal; // 用户投资总额
             userInvitests[msg.sender][project].reward =
                 (ratio[project] * userInvestTotal) /
-                10**18; // 用户的总收益
+                10 ** 18; // 用户的总收益
             investToOwner[project] += investTotal; // 项目方可收到的货款
-            projectPoolTotal[project] -= (investTotal * ratio[project]) / 10**18; // 预支池子里的项目方代币
+            projectPoolTotal[project] -=
+                (investTotal * ratio[project]) /
+                10 ** 18; // 预支池子里的项目方代币
             userHasInvest[project] += investTotal; // 更新普通人预留池
         }
+
+        userType[msg.sender] = 2;
     }
 
     function _initUserBaseConfig(address project, address invest) private {

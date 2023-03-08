@@ -24,7 +24,7 @@ contract WhiteList is Project {
         bytes32 _root,
         uint _maxBuy,
         uint _totalUsers
-    ) public onlyProjectOwner(_project) {
+    ) public onlyProjectOwner(_project) _logs_ {
         // 不能超过最大配额
         require(
             _totalUsers * _maxBuy <=

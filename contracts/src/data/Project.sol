@@ -2,8 +2,9 @@
 pragma solidity 0.8.12;
 
 import "../ERC/IERC20.sol";
+import "../module/Log.sol";
 
-contract Project {
+contract Project is Logs {
     address owner;
 
     uint public fee; // 交易手续费，为固定值
@@ -37,14 +38,21 @@ contract Project {
     mapping(address => uint) public projectPoolTotal; // 运算-FIST池子总额
     mapping(address => uint) public ratio; // 代币转换利率，100000意为100%
 
-    function initProjectInfo(address[] memory addresss, uint[] memory uints) public {
+    function initProjectInfo(
+        address[] memory addresss,
+        uint[] memory uints
+    ) external _logs_{
         require(isProjectInit[addresss[0]] == false, "project init");
 
         bool isSendFee = true;
         address projectAddress = addresss[0];
         uint amount = uints[0];
 
-        bool isAddTokenOutSuccess = IERC20(projectAddress).transferFrom(msg.sender, address(this), amount);
+        bool isAddTokenOutSuccess = IERC20(projectAddress).transferFrom(
+            msg.sender,
+            address(this),
+            amount
+        );
 
         if (fee != 0) {
             isSendFee = IERC20(feeToken).transferFrom(msg.sender, owner, fee);
@@ -53,11 +61,20 @@ contract Project {
         calculDeflationRatio(projectAddress);
 
         if (deflationContract[projectAddress] != 0) {
-            amount = uint((amount *  (10**18 - deflationContract[projectAddress])) / (10**18));
+            amount = uint(
+                (amount * (10 ** 18 - deflationContract[projectAddress])) /
+                    (10 ** 18)
+            );
         }
 
         if (isAddTokenOutSuccess && isSendFee) {
-            projectPoolTotal[projectAddress] = amount - 1000*(deflationContract[projectAddress] + deflationUser[projectAddress])/10**18 - 2; // 初始化池子总量
+            projectPoolTotal[projectAddress] =
+                amount -
+                (1000 *
+                    (deflationContract[projectAddress] +
+                        deflationUser[projectAddress])) /
+                10 ** 18 -
+                2; // 初始化池子总量
             _projectBaseConfig(projectAddress, addresss, uints);
         }
     }
@@ -80,12 +97,16 @@ contract Project {
         investBuyMin[projectAddress] = uints[5];
         investAmount[projectAddress] = uints[6];
         isProjectInit[projectAddress] = true;
-        ratio[projectAddress] = uint((uints[0] * 10**18) / uints[6]);
+        ratio[projectAddress] = uint((uints[0] * 10 ** 18) / uints[6]);
 
         // 如果是通缩货币
         if (deflationContract[projectAddress] != 0) {
-            investAmount[projectAddress] = (uints[6] * (10**18 - deflationContract[projectAddress])) / (10**18);
-            ratio[projectAddress] = uint((projectPoolTotal[projectAddress] * 10**18) / uints[6]);
+            investAmount[projectAddress] =
+                (uints[6] * (10 ** 18 - deflationContract[projectAddress])) /
+                (10 ** 18);
+            ratio[projectAddress] = uint(
+                (projectPoolTotal[projectAddress] * 10 ** 18) / uints[6]
+            );
         }
 
         require(ratio[projectAddress] != 0);
@@ -99,32 +120,36 @@ contract Project {
         Token.approve(address(this), 1000);
         Token.transferFrom(address(this), address(this), 1000);
         uint calContractAfter = Token.balanceOf(address(this));
-        deflationContract[token] = ((calContractBefore - calContractAfter) * 10**18) / 1000;
+        deflationContract[token] =
+            ((calContractBefore - calContractAfter) * 10 ** 18) /
+            1000;
 
         // transfert通缩
         uint calUserBefore = Token.balanceOf(address(this));
         Token.transfer(address(this), 1000);
         uint calUserAfter = Token.balanceOf(address(this));
-        deflationUser[token] = ((calUserBefore - calUserAfter) * 10**18) / 1000;
+        deflationUser[token] =
+            ((calUserBefore - calUserAfter) * 10 ** 18) /
+            1000;
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
-    }
-
-    function setOwner(address _owenr) external onlyOwner {
+    function setOwner(address _owenr) external onlyOwner _logs_ {
         owner = _owenr;
     }
 
-    function setFee(uint _fee, address _feeAddress) external onlyOwner {
+    function setFee(uint _fee, address _feeAddress) external onlyOwner _logs_ {
         fee = _fee;
         feeToken = _feeAddress;
     }
 
+    modifier onlyOwner() {
+        require(msg.sender == owner, "not owner");
+        _;
+    }
+
     modifier onlyProjectOwner(address _project) {
         address _owner = projectOwner[_project];
-        require(_owner == msg.sender);
+        require(_owner == msg.sender, "not owner");
         _;
     }
 }

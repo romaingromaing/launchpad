@@ -29,7 +29,7 @@ contract Main is User {
     // 1.先算出用户能提多少钱
     // 2.修改用户与项目相关的数据
     // 3.执行提款操作
-    function userWithdraw(address _project) public returns (bool) {
+    function userWithdraw(address _project) external returns (bool) {
         uint canWithdraw = userCanWithdraw(_project);
         userInvitests[msg.sender][_project].hasReward += canWithdraw;
         return IERC20(_project).transfer(msg.sender, canWithdraw);
@@ -43,7 +43,8 @@ contract Main is User {
     // 2.修改与项目方相关的池子总量
     // 3.执行提款操作
     function projectWithdraw(address _project)
-        public
+        external
+        _logs_
         onlyProjectOwner(_project)
         returns (bool)
     {
