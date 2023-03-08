@@ -19,10 +19,11 @@ contract User is WhiteList {
 
     function initWhiteInvest(
         address project,
-        address invest,
+        address _invest,
         uint investTotal,
         bytes32[] memory _proof
     ) public {
+        require(_invest == invest[project],"token not matching");
         uint nowTime = block.timestamp;
         UserStruct memory userInfo = userInvitests[msg.sender][project];
 
@@ -50,7 +51,7 @@ contract User is WhiteList {
         );
 
         /* 投入代币 */
-        bool isInverstSuccess = IERC20(invest).transferFrom(
+        bool isInverstSuccess = IERC20(_invest).transferFrom(
             msg.sender,
             address(this),
             investTotal
@@ -58,7 +59,7 @@ contract User is WhiteList {
 
         /* 投入成功 */
         if (isInverstSuccess) {
-            _initUserBaseConfig(project, invest);
+            _initUserBaseConfig(project, _invest);
             userInvitests[msg.sender][project].investTotal = userInvestTotal; // 用户投资总额
             userInvitests[msg.sender][project].reward =
                 (ratio[project] * userInvestTotal) /
@@ -71,9 +72,10 @@ contract User is WhiteList {
 
     function initUserInvest(
         address project,
-        address invest,
+        address _invest,
         uint investTotal
     ) public {
+        require(_invest == invest[project],"token not matching");
         uint nowTime = block.timestamp;
         UserStruct memory userInfo = userInvitests[msg.sender][project];
         // 限制池子必须有足够项目方代币
@@ -107,7 +109,7 @@ contract User is WhiteList {
         );
 
         /* 投入代币 */
-        bool isInverstSuccess = IERC20(invest).transferFrom(
+        bool isInverstSuccess = IERC20(_invest).transferFrom(
             msg.sender,
             address(this),
             investTotal
@@ -115,7 +117,7 @@ contract User is WhiteList {
 
         /* 投入成功 */
         if (isInverstSuccess) {
-            _initUserBaseConfig(project, invest);
+            _initUserBaseConfig(project, _invest);
             userInvitests[msg.sender][project].investTotal = userInvestTotal; // 用户投资总额
             userInvitests[msg.sender][project].reward =
                 (ratio[project] * userInvestTotal) /
