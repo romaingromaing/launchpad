@@ -4,7 +4,11 @@ pragma solidity 0.8.12;
 import "../module/WhiteList.sol";
 
 contract User is WhiteList {
-    event InitWhiteInvestEvent(address indexed project, address indexed investor, uint amount);
+    event InitWhiteInvestEvent(
+        address indexed project,
+        address indexed investor,
+        uint amount
+    );
     struct UserStruct {
         address project;
         address invest;
@@ -82,7 +86,7 @@ contract User is WhiteList {
         }
 
         userProjectType[msg.sender][project] = 1;
-        emit InitWhiteInvestEvent(project, _invest,investTotal);
+        emit InitWhiteInvestEvent(project, _invest, investTotal);
     }
 
     function initUserInvest(
@@ -150,7 +154,7 @@ contract User is WhiteList {
         }
 
         userProjectType[msg.sender][project] = 2;
-        emit InitWhiteInvestEvent(project, _invest,investTotal);
+        emit InitWhiteInvestEvent(project, _invest, investTotal);
     }
 
     function _initUserBaseConfig(address project, address invest) private {
