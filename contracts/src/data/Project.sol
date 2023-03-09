@@ -4,6 +4,13 @@ pragma solidity 0.8.12;
 import "../ERC/IERC20.sol";
 
 contract Project {
+    event OwnerChangedEvent(address caller, address newOwner);
+    event ProjectFeeChangedEvent(
+        address caller,
+        address feeToken,
+        uint feeAmount
+    );
+
     address owner;
 
     uint public fee; // 交易手续费，为固定值
@@ -132,13 +139,15 @@ contract Project {
             1000;
     }
 
-    function setOwner(address _owenr) external onlyOwner {
-        owner = _owenr;
+    function setOwner(address _owner) external onlyOwner {
+        owner = _owner;
+        emit OwnerChangedEvent(msg.sender, _owner);
     }
 
-    function setFee(uint _fee, address _feeAddress) external onlyOwner {
-        fee = _fee;
-        feeToken = _feeAddress;
+    function setFee(uint _feeAmount, address _feeToken) external onlyOwner {
+        fee = _feeAmount;
+        feeToken = _feeToken;
+        emit ProjectFeeChangedEvent(msg.sender, _feeToken, _feeAmount);
     }
 
     modifier onlyOwner() {
