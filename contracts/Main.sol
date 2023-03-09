@@ -23,23 +23,17 @@ contract Main is User {
 
     // 待领取收益 = ((当前时间-项目结束时间) / (延迟释放时间)) * 总收益 - 已领取收益。
     function userCanWithdraw(address _project) public view returns (uint) {
-        if (endTime[_project] > block.timestamp) {
-            return 0;
-        }
-        if (
-            freeLineTime[_project] == 0 ||
-            block.timestamp - endTime[_project] >= freeLineTime[_project]
-        ) {
-            return
-                userInvitests[msg.sender][_project].reward -
-                userInvitests[msg.sender][_project].hasReward;
-        } else {
-            return
-                (((block.timestamp - endTime[_project]) *
-                    userInvitests[msg.sender][_project].reward) /
-                    freeLineTime[_project]) -
-                userInvitests[msg.sender][_project].hasReward;
-        }
+        bool isBeforeEndTime = endTime[_project] > block.timestamp;
+        bool isNotLineFreeProjectOrEndProject = freeLineTime[_project] == 0 ||
+            block.timestamp - endTime[_project] >= freeLineTime[_project];
+        uint userHasReward = userInvitests[msg.sender][_project].hasReward;
+        if (isBeforeEndTime) return 0;
+        if (isNotLineFreeProjectOrEndProject)
+            return userInvitests[msg.sender][_project].reward - userHasReward;
+        return
+            (((block.timestamp - endTime[_project]) *
+                userInvitests[msg.sender][_project].reward) /
+                freeLineTime[_project]) - userHasReward;
     }
 
     // 用户提款
