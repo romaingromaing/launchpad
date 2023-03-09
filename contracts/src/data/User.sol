@@ -2,7 +2,6 @@
 pragma solidity 0.8.12;
 
 import "../module/WhiteList.sol";
-import "../module/Log.sol";
 
 contract User is WhiteList {
     struct UserStruct {
@@ -16,7 +15,7 @@ contract User is WhiteList {
     }
 
     // 用户类型
-    mapping (address => uint) userType;
+    mapping(address => mapping(address => uint)) userProjectType;
 
     // 用户投资情况
     mapping(address => mapping(address => UserStruct))
@@ -27,8 +26,12 @@ contract User is WhiteList {
         address _invest,
         uint investTotal,
         bytes32[] memory _proof
-    ) external _logs_ {
-         require(userType[msg.sender] == 0 || userType[msg.sender] == 1,"nonwhitelist investors"); // 0 default; 1 whitelist accounts
+    ) external {
+        require(
+            userProjectType[msg.sender][project] == 0 ||
+                userProjectType[msg.sender][project] == 1,
+            "nonwhitelist investors"
+        ); // 0 default; 1 whitelist accounts
         require(_invest == invest[project], "token not matching");
         uint nowTime = block.timestamp;
         UserStruct memory userInfo = userInvitests[msg.sender][project];
@@ -77,15 +80,19 @@ contract User is WhiteList {
             whiteHasInvest[project] += investTotal; // 更新白名单预留池
         }
 
-        userType[msg.sender] = 1;
+        userProjectType[msg.sender][project] = 1;
     }
 
     function initUserInvest(
         address project,
         address _invest,
         uint investTotal
-    ) external _logs_ {
-        require(userType[msg.sender] == 0 || userType[msg.sender] == 2,"nonordinary investors"); // 0 default; 2 ordinary accounts
+    ) external {
+        require(
+            userProjectType[msg.sender][project] == 0 ||
+                userProjectType[msg.sender][project] == 2,
+            "nonordinary investors"
+        ); // 0 default; 2 ordinary accounts
         require(_invest == invest[project], "token not matching");
         uint nowTime = block.timestamp;
         UserStruct memory userInfo = userInvitests[msg.sender][project];
@@ -140,7 +147,7 @@ contract User is WhiteList {
             userHasInvest[project] += investTotal; // 更新普通人预留池
         }
 
-        userType[msg.sender] = 2;
+        userProjectType[msg.sender][project] = 2;
     }
 
     function _initUserBaseConfig(address project, address invest) private {

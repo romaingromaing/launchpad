@@ -2,9 +2,8 @@
 pragma solidity 0.8.12;
 
 import "../ERC/IERC20.sol";
-import "../module/Log.sol";
 
-contract Project is Logs {
+contract Project {
     address owner;
 
     uint public fee; // 交易手续费，为固定值
@@ -41,7 +40,7 @@ contract Project is Logs {
     function initProjectInfo(
         address[] memory addresss,
         uint[] memory uints
-    ) external _logs_{
+    ) external {
         require(isProjectInit[addresss[0]] == false, "project init");
 
         bool isSendFee = true;
@@ -133,11 +132,11 @@ contract Project is Logs {
             1000;
     }
 
-    function setOwner(address _owenr) external onlyOwner _logs_ {
+    function setOwner(address _owenr) external onlyOwner {
         owner = _owenr;
     }
 
-    function setFee(uint _fee, address _feeAddress) external onlyOwner _logs_ {
+    function setFee(uint _fee, address _feeAddress) external onlyOwner {
         fee = _fee;
         feeToken = _feeAddress;
     }

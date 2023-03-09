@@ -44,7 +44,6 @@ contract Main is User {
     // 3.执行提款操作
     function projectWithdraw(address _project)
         external
-        _logs_
         onlyProjectOwner(_project)
         returns (bool)
     {
